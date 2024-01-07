@@ -1,9 +1,11 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QTreeView, QFileSystemModel, \
+from PySide6.QtWidgets import QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QSizePolicy, \
+    QTreeView, \
+    QFileSystemModel, \
     QTableWidget, QTableWidgetItem, QSplitter
-from PySide6.QtCore import QCoreApplication
+from PySide6.QtCore import QCoreApplication, QDir, Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import os
+import fnmatch, os
 import numpy as np
 
 
@@ -11,50 +13,93 @@ class TabExplore(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.page_layout = QHBoxLayout(self)
-        self.left_layout = QVBoxLayout()
-        self.page_layout.addLayout(self.left_layout)
+        self.layout = QVBoxLayout(self)
+        self.left_layout = QHBoxLayout()
 
-        # Add widgets to the frame
-        self.create_file_tree()
-        self.create_table()
-        self.create_matplotlib_plot()
+        # Create layout for File filter and File list
+        top_widget = QWidget()
+        top_layout = QVBoxLayout(top_widget)
 
-        button_exit = QPushButton('Exit')
-        button_exit.clicked.connect(self.on_exit_clicked)
+        h_left_splitter = QSplitter(Qt.Horizontal)
+        h_right_splitter = QSplitter(Qt.Horizontal)
+        v_left_splitter = QSplitter(Qt.Vertical)
+        v_right_splitter = QSplitter(Qt.Vertical)
 
+        h_left_splitter.addWidget(v_left_splitter)
+        h_left_splitter.addWidget(h_right_splitter)
+        self.create_stat_table(h_right_splitter)
+        h_right_splitter.addWidget(v_right_splitter)
 
-        self.left_layout.addWidget(button_exit)
+        plot_canvas = PlotCanvas(self)
+        v_right_splitter.addWidget(plot_canvas)
 
+        self.create_filter_widget(top_layout)
+        self.file_list_widget = QListWidget()
+        top_layout.addWidget(self.file_list_widget)
 
-    def create_file_tree(self):
+        v_left_splitter.addWidget(top_widget)
+        v_right_splitter.addWidget(plot_canvas)
+        self.create_stat_table(v_right_splitter)
+
+        self.create_file_tree(v_left_splitter)
+
+        self.layout.addWidget(h_left_splitter)
+
+    def create_filter_widget(self, parent):
+        filter_widget = QComboBox()
+
+        # Add filter options to the combo box
+        filter_widget.addItems(
+            ["All (*.*)", "Stat and CCD (*.sts,*.ccd)", "Stat and Data (*.sts, *.dat)", "CCD (*.ccd)"])
+
+        parent.addWidget(filter_widget)
+
+    def create_file_tree(self, parent):
         file_tree = QTreeView()
         # Add logic to populate the file tree, e.g., using QFileSystemModel
         # For simplicity, a placeholder directory is used here.
         model = QFileSystemModel()
-        model.setRootPath(os.path.expanduser('~'))
+        model.setRootPath('')
+        model.setReadOnly(True)
+        model.setNameFilters(['Name'])
         file_tree.setModel(model)
-        file_tree.setRootIndex(model.index(os.path.expanduser('~')))
-        self.left_layout.addWidget(file_tree)
+        file_tree.setRootIndex(model.index(''))
+        file_tree.header().hide()
+        file_tree.hideColumn(1)
+        file_tree.hideColumn(2)
+        file_tree.hideColumn(3)
+        file_tree.selectionModel().selectionChanged.connect(self.update_file_list)
+        # Set the filter to display only folders
+        model.setFilter(QDir.AllDirs | QDir.NoDotAndDotDot)
+        parent.addWidget(file_tree)
 
-    def create_table(self):
-        table = QTableWidget(10, 3)
+    def update_file_list(self):
+        # Get the selected folder from the file tree
+        selected_index = self.sender().currentIndex()
+        selected_folder_path = self.sender().model().filePath(selected_index)
+
+
+
+        file_list = fnmatch.filter(os.listdir(selected_folder_path), '*.ccd')
+
+        # Add files to the file list
+        self.file_list_widget.addItems(file_list)
+
+    def create_data_table(self, parent):
+        data_table = QTableWidget(10, 2)
+        for row in range(10):
+            for col in range(2):
+                item = QTableWidgetItem(f'Row {row + 1}, Col {col + 1}')
+                data_table.setItem(row, col, item)
+        parent.addWidget(data_table)
+
+    def create_stat_table(self, parent):
+        stat_table = QTableWidget(10, 2)
         for row in range(10):
             for col in range(3):
                 item = QTableWidgetItem(f'Row {row + 1}, Col {col + 1}')
-                table.setItem(row, col, item)
-        self.page_layout.addWidget(table)
-
-    def create_matplotlib_plot(self):
-        plot_canvas = PlotCanvas(self)
-        self.page_layout.addWidget(plot_canvas)
-
-    def on_next_clicked(self):
-        print("Next button clicked")
-
-    def on_exit_clicked(self):
-        QCoreApplication.instance().quit()
-        print("Exit button clicked")
+                stat_table.setItem(row, col, item)
+        parent.addWidget(stat_table)
 
 
 class PlotCanvas(FigureCanvas):
