@@ -1,51 +1,115 @@
-from PySide6.QtWidgets import QWidget, QTextEdit, QVBoxLayout, QLabel, QSizePolicy, QTreeView, QTableWidget, QTableWidgetItem, \
-    QSplitter
+from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtWidgets import QWidget, QTextEdit, QVBoxLayout, QLabel, QSizePolicy, QTreeView, QTableWidget, \
+    QTableWidgetItem, \
+    QSplitter, QHeaderView
 from PySide6.QtCore import Qt, QCoreApplication, QDir
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QListWidget, QTreeView, QFileSystemModel, QSplitter
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
+import os
 
 
 class TabTest(QWidget):
     def __init__(self):
-        super().__init__()
+        super(FileTab, self).__init__()
 
-        self.layout = QVBoxLayout(self)
+        # File Tree
+        self.file_tree = QTreeView(self)
+        self.file_tree.setRootIsDecorated(False)
+        self.file_tree.setSortingEnabled(True)
+        self.file_tree.setHeaderHidden(True)
 
-        # Add widgets directly to the tab
-        self.create_file_explorer()
+        # File List
+        self.file_list = QTableWidget(self)
+        self.file_list.setColumnCount(1)
+        self.file_list.setHorizontalHeaderLabels(["Files"])
+        self.file_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.file_list.setColumnWidth(0, 200)
 
-    def create_file_explorer(self):
-        # Create a vertical layout for the file explorer
-        explorer_layout = QVBoxLayout()
+        # Matplotlib Plot
+        self.figure, self.ax = plt.subplots()
+        self.canvas = FigureCanvas(self.figure)
+        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Create a file tree
-        file_tree = QTreeView()
-        file_tree_model = QFileSystemModel()
-        file_tree_model.setRootPath('')
-        file_tree.setModel(file_tree_model)
-        file_tree.setRootIndex(file_tree_model.index(''))
+        # Layout
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.file_tree)
+        layout.addWidget(self.file_list)
+        layout.addWidget(self.canvas)
 
-        # Connect the selectionChanged signal to update the file list
-        file_tree.selectionModel().selectionChanged.connect(self.update_file_list)
+        # Set up connections
+        self.file_tree.selectionModel().selectionChanged.connect(self.update_file_list)
+        self.file_list.itemSelectionChanged.connect(self.plot_selected_file)
 
-        explorer_layout.addWidget(file_tree)
+        # Initialize the file tree
+        self.setup_file_tree()
 
-        # Create a file list
-        file_list_widget = QListWidget()
-        explorer_layout.addWidget(file_list_widget)
+    def setup_file_tree(self):
+        model = QFileSystemModel()
+        model.setRootPath(QDir.rootPath())
+        model.setFilter(QDir.NoDotAndDotDot | QDir.AllDirs)
 
-        self.layout.addLayout(explorer_layout)
+        self.file_tree.setModel(model)
+        self.file_tree.setRootIndex(model.index(QDir.rootPath()))
 
     def update_file_list(self):
-        # Get the selected folder from the file tree
-        selected_index = self.sender().currentIndex()
-        selected_folder_path = self.sender().model().filePath(selected_index)
+        selected_index = self.file_tree.currentIndex()
+        current_path = self.file_tree.model().filePath(selected_index)
 
-        # Update the file list with the files in the selected folder
-        file_list_widget = self.layout.itemAt(0).itemAt(1).widget()  # Get the file list widget
-        file_list_widget.clear()  # Clear the existing items
+        file_model = QStandardItemModel()
+        file_list = [f for f in os.listdir(current_path) if f.endswith(".ccd")]
 
-        # Add files to the file list
-        file_list_widget.addItems(QDir(selected_folder_path).entryList())
+        for file_name in file_list:
+            item = QStandardItem(file_name)
+            file_model.appendRow(item)
+
+        self.file_list.setModel(file_model)
+
+    def plot_selected_file(self):
+        selected_items = self.file_list.selectedItems()
+
+        if selected_items:
+            selected_file = selected_items[0].text()
+            file_path = os.path.join(self.file_tree.model().filePath(self.file_tree.currentIndex()), selected_file)
+
+            with open(file_path, 'r') as file:
+                content = file.readlines()
+                x_values = [float(line.split()[0]) for line in content]
+                y_values = [float(line.split()[1]) for line in content]
+
+                # Clear previous plot
+                self.ax.clear()
+
+                # Plot new data
+                self.ax.plot(x_values, y_values)
+                self.ax.set_xlabel('X')
+                self.ax.set_ylabel('Y')
+                self.ax.set_title(f'Plot for {selected_file}')
+
+                # Redraw canvas
+                self.canvas.draw()
+
+
+class PlotTab(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.canvas)
+
+    def update_plot(self, selected_file):
+        # Read data from the selected file
+        file_path = os.path.join(selected_folder, selected_file)
+        data = np.loadtxt(file_path)
+
+        # Plot the data
+        self.figure.clear()
+        ax = self.figure.add_subplot(111)
+        ax.plot(data[:, 0], data[:, 1])
+
+        # Update the canvas
+        self.canvas.draw()

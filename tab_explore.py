@@ -1,8 +1,9 @@
 from PySide6.QtWidgets import QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QSizePolicy, \
-    QTreeView, \
+    QTreeView, QSplitterHandle,\
     QFileSystemModel, \
     QTableWidget, QTableWidgetItem, QSplitter
 from PySide6.QtCore import QCoreApplication, QDir, Qt
+from PySide6.QtGui import QPainter, QColor
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import fnmatch, os
@@ -20,30 +21,29 @@ class TabExplore(QWidget):
         top_widget = QWidget()
         top_layout = QVBoxLayout(top_widget)
 
+        # Create Splitters
         h_left_splitter = QSplitter(Qt.Horizontal)
         h_right_splitter = QSplitter(Qt.Horizontal)
         v_left_splitter = QSplitter(Qt.Vertical)
         v_right_splitter = QSplitter(Qt.Vertical)
 
+        # Fill splitter panels with other splitters and widgets
         h_left_splitter.addWidget(v_left_splitter)
         h_left_splitter.addWidget(h_right_splitter)
         self.create_stat_table(h_right_splitter)
         h_right_splitter.addWidget(v_right_splitter)
-
-        plot_canvas = PlotCanvas(self)
-        v_right_splitter.addWidget(plot_canvas)
-
         self.create_filter_widget(top_layout)
         self.file_list_widget = QListWidget()
         top_layout.addWidget(self.file_list_widget)
-
         v_left_splitter.addWidget(top_widget)
-        v_right_splitter.addWidget(plot_canvas)
+        self.create_plot(v_right_splitter)
         self.create_stat_table(v_right_splitter)
-
         self.create_file_tree(v_left_splitter)
-
         self.layout.addWidget(h_left_splitter)
+
+        # Fix left splitter position on main window resize
+        h_left_splitter.setStretchFactor(1, 1)
+        h_right_splitter.setStretchFactor(1, 1)
 
     def create_filter_widget(self, parent):
         filter_widget = QComboBox()
@@ -78,8 +78,6 @@ class TabExplore(QWidget):
         selected_index = self.sender().currentIndex()
         selected_folder_path = self.sender().model().filePath(selected_index)
 
-
-
         file_list = fnmatch.filter(os.listdir(selected_folder_path), '*.ccd')
 
         # Add files to the file list
@@ -101,6 +99,10 @@ class TabExplore(QWidget):
                 stat_table.setItem(row, col, item)
         parent.addWidget(stat_table)
 
+    def create_plot(self, parent):
+        plot_canvas = PlotCanvas(self)
+        parent.addWidget(plot_canvas)
+
 
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -121,3 +123,6 @@ class PlotCanvas(FigureCanvas):
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+
+
+
