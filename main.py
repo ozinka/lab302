@@ -13,6 +13,7 @@ class MyGUI(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
 
         self.central_widget = QTabWidget()
+
         self.setCentralWidget(self.central_widget)
 
         # Create three tabs using the TabModule
@@ -22,5 +23,6 @@ class MyGUI(QMainWindow):
 if __name__ == '__main__':
     app = QApplication([])
     window = MyGUI()
+    window.setGeometry(200,200,1200,800)
     window.show()
     app.exec()

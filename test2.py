@@ -1,7 +1,7 @@
 import sys, os
-from PySide6.QtWidgets import  QApplication, QMainWindow, QTreeView, QFileSystemModel, QListView, QVBoxLayout, QWidget, \
+from PySide6.QtWidgets import QApplication, QMainWindow, QTreeView, QFileSystemModel, QListView, QVBoxLayout, QWidget, \
     QSizePolicy
-from PySide6.QtCore import QDir, QStringListModel
+from PySide6.QtCore import  QDir
 
 
 class FileExplorerApp(QMainWindow):
@@ -46,12 +46,12 @@ class FileExplorerApp(QMainWindow):
         selected_index = self.file_tree.currentIndex()
         current_path = self.file_tree.model().filePath(selected_index)
 
+        file_model = self.file_list.model()
+        file_model.clear()
+
         file_list = [f for f in os.listdir(current_path) if os.path.isfile(os.path.join(current_path, f))]
 
-        file_model = QStringListModel()
         file_model.setStringList(file_list)
-
-        self.file_list.setModel(file_model)
 
 
 if __name__ == '__main__':

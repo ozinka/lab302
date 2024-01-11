@@ -1,7 +1,7 @@
 from PySide6 import QtCharts, QtGui
 from PySide6.QtWidgets import QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QSizePolicy, \
-    QTreeView, QFileSystemModel, QTableWidget, QTableWidgetItem, QSplitter
-from PySide6.QtCore import QCoreApplication, QDir, Qt
+    QTreeView, QFileSystemModel, QTableWidget, QTableWidgetItem, QSplitter, QListView
+from PySide6.QtCore import QCoreApplication, QDir, Qt, QStringListModel
 from PySide6.QtGui import QPainter, QColor
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -12,32 +12,37 @@ class TabExplore(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.layout = QVBoxLayout(self)
-        self.left_layout = QHBoxLayout()
+        self.main_layout = QVBoxLayout(self)
 
         # Create layout for File filter and File list
-        top_widget = QWidget()
-        top_layout = QVBoxLayout(top_widget)
+        file_widget = QWidget()
+        file_layout = QVBoxLayout(file_widget)
+        file_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.file_tree_model = QStringListModel()
+        # self.file_model = QStringListModel()
 
         # Create Splitters
-        h_left_splitter = QSplitter(Qt.Horizontal)
-        h_right_splitter = QSplitter(Qt.Horizontal)
-        v_left_splitter = QSplitter(Qt.Vertical)
-        v_right_splitter = QSplitter(Qt.Vertical)
+        h_left_splitter = QSplitter(Qt.Horizontal)  # Left: File list, File tree; Right: h_right_splitter
+        h_right_splitter = QSplitter(Qt.Horizontal)  # Left: table; Right: Chart, Bottom table
+        v_left_splitter = QSplitter(Qt.Vertical)  # Top: File Filter, File List; Bottom: File Tree
+        v_right_splitter = QSplitter(Qt.Vertical)  # Top: Chart; Bottom: Stat Table
 
         # Fill splitter panels with other splitters and widgets
         h_left_splitter.addWidget(v_left_splitter)
         h_left_splitter.addWidget(h_right_splitter)
         self.create_stat_table(h_right_splitter)
         h_right_splitter.addWidget(v_right_splitter)
-        self.create_filter_widget(top_layout)
-        self.file_list_widget = QListWidget()
-        top_layout.addWidget(self.file_list_widget)
-        v_left_splitter.addWidget(top_widget)
+        self.create_filter_widget(file_layout)
+        # File List
+        self.file_list_widget = QListView()
+        file_layout.addWidget(self.file_list_widget)
+
+        v_left_splitter.addWidget(file_widget)
         self.create_plot(v_right_splitter)
         self.create_stat_table(v_right_splitter)
         self.create_file_tree(v_left_splitter)
-        self.layout.addWidget(h_left_splitter)
+        self.main_layout.addWidget(h_left_splitter)
 
         # Fix left splitter position on main window resize
         h_left_splitter.setStretchFactor(1, 1)
@@ -54,6 +59,7 @@ class TabExplore(QWidget):
 
     def create_file_tree(self, parent):
         file_tree = QTreeView()
+        file_tree.setContentsMargins(0, 0, 0, 0)
         # Add logic to populate the file tree, e.g., using QFileSystemModel
         # For simplicity, a placeholder directory is used here.
         model = QFileSystemModel()
@@ -71,15 +77,20 @@ class TabExplore(QWidget):
         model.setFilter(QDir.AllDirs | QDir.NoDotAndDotDot)
         parent.addWidget(file_tree)
 
+        self.file_list_widget.setModel(self.file_tree_model)
+        self.file_list_widget.selectionModel().currentChanged.connect(self.update_data_table)
+
     def update_file_list(self):
         # Get the selected folder from the file tree
         selected_index = self.sender().currentIndex()
-        selected_folder_path = self.sender().model().filePath(selected_index)
+        self.selected_folder_path = self.sender().model().filePath(selected_index)
 
-        file_list = fnmatch.filter(os.listdir(selected_folder_path), '*.ccd')
+        file_list = fnmatch.filter(os.listdir(self.selected_folder_path), '*.ccd')
+        self.file_tree_model.setStringList(file_list)
 
-        # Add files to the file list
-        self.file_list_widget.addItems(file_list)
+    def update_data_table(self):
+        file_name = self.file_list_widget.currentIndex().data()
+        print(os.path.join(self.selected_folder_path, file_name))
 
     def create_data_table(self, parent):
         data_table = QTableWidget(10, 2)
@@ -95,22 +106,26 @@ class TabExplore(QWidget):
             for col in range(3):
                 item = QTableWidgetItem(f'Row {row + 1}, Col {col + 1}')
                 stat_table.setItem(row, col, item)
+        # parent.addWidget(stat_table)
         parent.addWidget(stat_table)
 
     def create_plot(self, parent):
-        # Create chart view
-        chart_view = QtCharts.QChartView(self)
-        chart_view.setRenderHint(QtGui.QPainter.Antialiasing)
-
         # Create chart
         self.chart = QtCharts.QChart()
-        self.chart.setTitle("Spline Chart")
+        # Create chart view
+        chart_view = QtCharts.QChartView(self)
+        # chart_view.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # self.chart.setTitle("Spline Chart")
 
         # Create spline series
         # self.spline_series = QtCharts.QSplineSeries()
         # self.spline_series = QtCharts.QLineSeries()
         self.spline_series = QtCharts.QScatterSeries()
-        self.spline_series.setName("Spline Series")
+        # self.spline_series.setName("Spline Series")
+
+        # Set Margins
+        self.chart.layout().setContentsMargins(0, 4, 4, 0)
 
         # Set point style
         self.spline_series.setMarkerShape(QtCharts.QScatterSeries.MarkerShapeCircle)
@@ -119,6 +134,7 @@ class TabExplore(QWidget):
 
         # Add series to chart
         self.chart.addSeries(self.spline_series)
+        self.chart.legend().hide()
 
         # Create X-axis and Y-axis
         axis_x = QtCharts.QValueAxis()
@@ -137,9 +153,3 @@ class TabExplore(QWidget):
         # Set chart on the chart view
         chart_view.setChart(self.chart)
         parent.addWidget(chart_view)
-
-
-
-
-
-

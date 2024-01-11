@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
         delegate = DateTimeDelegate(self.table)
         self.table.setItemDelegateForColumn(0, delegate)
         chart = QtCharts.QChart()
+        chart.layout().setContentsMargins(0, 0, 0, 0)
         self.chartView = QtCharts.QChartView(chart)
         self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
         self.chartView.setFixedSize(800, 430)
