@@ -1,13 +1,11 @@
+from PySide6 import QtCharts, QtGui
 from PySide6.QtWidgets import QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QSizePolicy, \
-    QTreeView, QSplitterHandle,\
-    QFileSystemModel, \
-    QTableWidget, QTableWidgetItem, QSplitter
+    QTreeView, QFileSystemModel, QTableWidget, QTableWidgetItem, QSplitter
 from PySide6.QtCore import QCoreApplication, QDir, Qt
 from PySide6.QtGui import QPainter, QColor
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import fnmatch, os
-import numpy as np
 
 
 class TabExplore(QWidget):
@@ -100,29 +98,48 @@ class TabExplore(QWidget):
         parent.addWidget(stat_table)
 
     def create_plot(self, parent):
-        plot_canvas = PlotCanvas(self)
-        parent.addWidget(plot_canvas)
+        # Create chart view
+        chart_view = QtCharts.QChartView(self)
+        chart_view.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Create chart
+        self.chart = QtCharts.QChart()
+        self.chart.setTitle("Spline Chart")
+
+        # Create spline series
+        # self.spline_series = QtCharts.QSplineSeries()
+        # self.spline_series = QtCharts.QLineSeries()
+        self.spline_series = QtCharts.QScatterSeries()
+        self.spline_series.setName("Spline Series")
+
+        # Set point style
+        self.spline_series.setMarkerShape(QtCharts.QScatterSeries.MarkerShapeCircle)
+        self.spline_series.setMarkerSize(5)  # Size in pixels
+        self.spline_series.setColor(QColor("red"))
+
+        # Add series to chart
+        self.chart.addSeries(self.spline_series)
+
+        # Create X-axis and Y-axis
+        axis_x = QtCharts.QValueAxis()
+        axis_x.setRange(0, 3000)
+        axis_x.setTickCount(11)
+        axis_x.setLabelFormat("%d")
+        self.chart.addAxis(axis_x, Qt.AlignBottom)
+        self.spline_series.attachAxis(axis_x)
+
+        axis_y = QtCharts.QValueAxis()
+        axis_y.setRange(0, 30)
+        axis_y.setTickCount(11)
+        self.chart.addAxis(axis_y, Qt.AlignLeft)
+        self.spline_series.attachAxis(axis_y)
+
+        # Set chart on the chart view
+        chart_view.setChart(self.chart)
+        parent.addWidget(chart_view)
 
 
-class PlotCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
 
-        # Plot y=x*x
-        x = np.linspace(0, 10, 100)
-        y = x * x
-        self.axes.plot(x, y, label='y=x*x')
-
-        self.axes.set_title('Matplotlib Plot: y=x*x')
-        self.axes.set_xlabel('X-axis')
-        self.axes.set_ylabel('Y-axis')
-        self.axes.legend()
-
-        FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
-        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
 
 
 
