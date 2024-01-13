@@ -1,63 +1,35 @@
-import sys, os
-from PySide6.QtWidgets import QApplication, QMainWindow, QTreeView, QFileSystemModel, QListView, QVBoxLayout, QWidget, \
-    QSizePolicy
-from PySide6.QtCore import  QDir
-
-
-class FileExplorerApp(QMainWindow):
+from PySide6.QtWidgets import QApplication, QMainWindow, QSplitter, QTextEdit
+import sys
+from PySide6.QtCore import QCoreApplication, QDir, Qt
+class SplitterExample(QMainWindow):
     def __init__(self):
-        super(FileExplorerApp, self).__init__()
+        super(SplitterExample, self).__init__()
 
-        # Initialize UI components
-        self.init_ui()
+        self.setWindowTitle("Splitter Example")
+        self.setGeometry(100, 100, 800, 600)
 
-    def init_ui(self):
-        # File Tree
-        self.file_tree = QTreeView(self)
-        self.file_tree.setRootIsDecorated(False)
-        self.file_tree.setSortingEnabled(True)
-        self.file_tree.setHeaderHidden(True)
+        # Create a splitter
+        splitter = QSplitter(Qt.Horizontal, self)
 
-        # Set up file tree model
-        model = QFileSystemModel()
-        model.setRootPath("/")
-        model.setFilter(QDir.NoDotAndDotDot | QDir.AllDirs)
-        self.file_tree.setModel(model)
-        self.file_tree.setRootIndex(model.index("/"))
+        # Create widgets for the left and right areas
+        left_widget = QTextEdit("Left Area", self)
+        right_widget = QTextEdit("Right Area", self)
 
-        # File List
-        self.file_list = QListView(self)
-        self.file_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        # Add widgets to the splitter
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
 
-        # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.file_tree)
-        layout.addWidget(self.file_list)
+        # Set the right area as collapsible
+        splitter.setCollapsible(1, True)
 
-        # Set central widget
-        central_widget = QWidget()
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
+        # Collapse the right area
+        splitter.setSizes([300, 0])
 
-        # Set up connections
-        self.file_tree.selectionModel().selectionChanged.connect(self.update_file_list)
+        # Set the splitter as the central widget
+        self.setCentralWidget(splitter)
 
-    def update_file_list(self):
-        selected_index = self.file_tree.currentIndex()
-        current_path = self.file_tree.model().filePath(selected_index)
-
-        file_model = self.file_list.model()
-        file_model.clear()
-
-        file_list = [f for f in os.listdir(current_path) if os.path.isfile(os.path.join(current_path, f))]
-
-        file_model.setStringList(file_list)
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    mainWin = FileExplorerApp()
-    mainWin.setGeometry(100, 100, 600, 400)
-    mainWin.setWindowTitle("File Explorer")
-    mainWin.show()
+    window = SplitterExample()
+    window.show()
     sys.exit(app.exec())
