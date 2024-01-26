@@ -4,7 +4,7 @@ from tab_run import TabRun
 from tab_test import TabTest
 from PySide6.QtCore import Qt
 
-# from theme import set_theme, set_matplotlib_dark_theme
+from theme import set_theme
 
 tabs = {'Explore': TabExplore, 'Run': TabRun, 'Test': TabTest}
 
@@ -51,7 +51,7 @@ class CustomStatusBar(QStatusBar):
 
 if __name__ == '__main__':
     app = QApplication([])
-    # set_theme(app)
+    set_theme(app, 'light')
     # set_matplotlib_dark_theme()
 
     window = MyGUI()
