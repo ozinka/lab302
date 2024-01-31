@@ -62,14 +62,18 @@ class UI_MainWindow(object):
         )
         self.btn_2 = PyPushButton(
             text="Burn plasma",
-            # icon_path="icon_widgets.svg"
-            icon_path="icon_flash_1.svg"
+            icon_path="icon_bolt.svg"
+        )
+        self.btn_3 = PyPushButton(
+            text="Approximation",
+            icon_path="icon_gauss.svg"
         )
 
         # ADD BTNS TO LAYOUT
         self.left_menu_top_layout.addWidget(self.toggle_button)
         self.left_menu_top_layout.addWidget(self.btn_1)
         self.left_menu_top_layout.addWidget(self.btn_2)
+        self.left_menu_top_layout.addWidget(self.btn_3)
 
         # MENU SPACER
         # ///////////////////////////////////////////////////////////////

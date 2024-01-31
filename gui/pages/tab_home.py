@@ -159,7 +159,7 @@ class TabHome(QFrame):
         self.update_text(file_path)
 
         # Add file name to status bar
-        QApplication.activeWindow().status_bar.showMessage(str(Path(str(file_path))), 0)
+        QApplication.activeWindow().ui.bottom_label_left.setText(str(Path(str(file_path))))
 
     def update_file_list(self):
         # Get the selected folder from the file tree
@@ -176,10 +176,6 @@ class TabHome(QFrame):
         self.spl_left = self.findChild(QSplitter, 'spl_left')
         self.spl_main = self.findChild(QSplitter, 'spl_main')
         self.spl_right = self.findChild(QSplitter, 'spl_right')
-        print(f'left: {self.spl_left.sizes()}')
-        print(f'main: {self.spl_main.sizes()}')
-        print(f'right: {self.spl_right.sizes()}')
-        print('*' * 40)
 
         # Save current Tree Dir path
         self.settings.setValue("tab_home_dir_path", self.selected_folder_path)
