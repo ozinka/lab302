@@ -1,28 +1,12 @@
-# ///////////////////////////////////////////////////////////////
-#
-# BY: WANDERSON M.PIMENTA
-# PROJECT MADE WITH: Qt Designer and PySide6
-# V: 1.0.0
-#
-# This project can be used freely for all uses, as long as they maintain the
-# respective credits only in the Python scripts, any information in the visual
-# interface (GUI) can be modified without any implication.
-#
-# There are limitations on Qt licenses if you want to use your products
-# commercially, I recommend reading them on the official website:
-# https://doc.qt.io/qtforpython/licenses.html
-#
-# ///////////////////////////////////////////////////////////////
-
 # IMPORT QT CORE
 from qt_core import *
 
 # IMPORT PAGES
 from gui.pages.ui_pages import Ui_application_pages
 
-
 # IMPORT CUSTOM WIDGETS
 from gui.widgets.py_push_button import PyPushButton
+
 
 # MAIN WINDOW
 class UI_MainWindow(object):
@@ -32,8 +16,8 @@ class UI_MainWindow(object):
 
         # SET INITIAL PARAMETERS
         # ///////////////////////////////////////////////////////////////
-        parent.resize(1200, 720)
-        parent.setMinimumSize(960, 540)
+        parent.resize(12, 7)
+        parent.setMinimumSize(2, 2)
 
         # CREATE CENTRAL WIDGET
         # ///////////////////////////////////////////////////////////////
@@ -41,7 +25,7 @@ class UI_MainWindow(object):
 
         # CREATE MAIN LAYOUT
         self.main_layout = QHBoxLayout(self.central_frame)
-        self.main_layout.setContentsMargins(0,0,0,0)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
         # LEFT MENU
@@ -53,7 +37,7 @@ class UI_MainWindow(object):
 
         # LEFT MENU LAYOUT
         self.left_menu_layout = QVBoxLayout(self.left_menu)
-        self.left_menu_layout.setContentsMargins(0,0,0,0)
+        self.left_menu_layout.setContentsMargins(0, 0, 0, 0)
         self.left_menu_layout.setSpacing(0)
 
         # TOP FRAME MENU
@@ -63,22 +47,23 @@ class UI_MainWindow(object):
 
         # TOP FRAME LAYOUT
         self.left_menu_top_layout = QVBoxLayout(self.left_menu_top_frame)
-        self.left_menu_top_layout.setContentsMargins(0,0,0,0)
+        self.left_menu_top_layout.setContentsMargins(0, 0, 0, 0)
         self.left_menu_top_layout.setSpacing(0)
 
         # TOP BTNS
         self.toggle_button = PyPushButton(
-            text = "Hide menu",
-            icon_path = "icon_menu.svg"
+            text="Hide menu",
+            icon_path="icon_menu.svg"
         )
         self.btn_1 = PyPushButton(
-            text = "File Explorer",
-            is_active = True,
-            icon_path = "icon_home.svg"
+            text="Home",
+            is_active=True,
+            icon_path="icon_home.svg"
         )
         self.btn_2 = PyPushButton(
-            text = "Burn plasma",
-            icon_path = "icon_widgets.svg"
+            text="Burn plasma",
+            # icon_path="icon_widgets.svg"
+            icon_path="icon_flash_1.svg"
         )
 
         # ADD BTNS TO LAYOUT
@@ -88,7 +73,7 @@ class UI_MainWindow(object):
 
         # MENU SPACER
         # ///////////////////////////////////////////////////////////////
-        self.left_menu_spacer = QSpacerItem(20,20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.left_menu_spacer = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         # BOTTOM FRAME MENU
         # ///////////////////////////////////////////////////////////////
@@ -97,13 +82,13 @@ class UI_MainWindow(object):
         self.left_menu_bottom_frame.setObjectName("left_menu_bottom_frame")
 
         self.left_menu_bottom_layout = QVBoxLayout(self.left_menu_bottom_frame)
-        self.left_menu_bottom_layout.setContentsMargins(0,0,0,0)
+        self.left_menu_bottom_layout.setContentsMargins(0, 0, 0, 0)
         self.left_menu_bottom_layout.setSpacing(0)
 
         # BOTTOM BTNS
         self.settings_btn = PyPushButton(
-            text = "Settings",
-            icon_path = "icon_settings.svg"
+            text="Settings",
+            icon_path="icon_settings.svg"
         )
 
         # ADD BTNS TO LAYOUT
@@ -111,7 +96,7 @@ class UI_MainWindow(object):
 
         # LABEL VERSION
         # ///////////////////////////////////////////////////////////////
-        self.left_menu_label_version = QLabel("v1.0.0")
+        self.left_menu_label_version = QLabel("v6.1.0")
         self.left_menu_label_version.setAlignment(Qt.AlignCenter)
         self.left_menu_label_version.setMinimumHeight(30)
         self.left_menu_label_version.setMaximumHeight(30)
@@ -131,7 +116,7 @@ class UI_MainWindow(object):
 
         # Content Layout
         self.content_layout = QVBoxLayout(self.content)
-        self.content_layout.setContentsMargins(0,0,0,0)
+        self.content_layout.setContentsMargins(0, 0, 0, 0)
         self.content_layout.setSpacing(0)
 
         # TOP BAR
@@ -141,16 +126,16 @@ class UI_MainWindow(object):
         self.top_bar.setMaximumHeight(30)
         self.top_bar.setStyleSheet("background-color: #21232d; color: #6272a4")
         self.top_bar_layout = QHBoxLayout(self.top_bar)
-        self.top_bar_layout.setContentsMargins(10,0,10,0)
+        self.top_bar_layout.setContentsMargins(10, 0, 10, 0)
 
         # Left label
         self.top_label_left = QLabel("lab302")
 
         # Top spacer
-        self.top_spacer = QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.top_spacer = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         # Right label
-        self.top_label_right = QLabel("| File Explorer")
+        self.top_label_right = QLabel("|")
         self.top_label_right.setStyleSheet("font: 700 9pt 'Segoe UI'")
 
         # Add to layout
@@ -163,7 +148,7 @@ class UI_MainWindow(object):
         self.pages.setStyleSheet("font-size: 12pt; color: #f8f8f2;")
         self.ui_pages = Ui_application_pages()
         self.ui_pages.setupUi(self.pages)
-        self.pages.setCurrentWidget(self.ui_pages.page_1)
+        self.pages.setCurrentWidget(self.ui_pages.page_home)
 
         # BOTTOM BAR
         # ///////////////////////////////////////////////////////////////
@@ -173,13 +158,13 @@ class UI_MainWindow(object):
         self.bottom_bar.setStyleSheet("background-color: #21232d; color: #6272a4")
 
         self.bottom_bar_layout = QHBoxLayout(self.bottom_bar)
-        self.bottom_bar_layout.setContentsMargins(10,0,10,0)
+        self.bottom_bar_layout.setContentsMargins(10, 0, 10, 0)
 
         # Left label
         self.bottom_label_left = QLabel("Created by: Vitaliy Osidach")
 
         # Top spacer
-        self.bottom_spacer = QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.bottom_spacer = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         # Right label
         self.bottom_label_right = QLabel("© 2024")
@@ -201,3 +186,8 @@ class UI_MainWindow(object):
 
         # SET CENTRAL WIDGET
         parent.setCentralWidget(self.central_frame)
+
+        # SET INITIAL PARAMETERS
+        # ///////////////////////////////////////////////////////////////
+        parent.resize(1200, 720)
+        parent.setMinimumSize(960, 540)
